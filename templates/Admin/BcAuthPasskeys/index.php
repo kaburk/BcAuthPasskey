@@ -49,6 +49,7 @@ $this->BcBaser->js('BcAuthPasskey.bc_auth_passkey', false, ['defer' => true]);
                                     __d('baser_core', '削除'),
                                     ['action' => 'delete', $credential->id],
                                     [
+                                        'block'   => true,
                                         'confirm' => __d('baser_core', 'このパスキーを削除してもよいですか？'),
                                         'class'   => 'bca-btn bca-actions__item',
                                         'data-bca-btn-type' => 'delete',
@@ -102,3 +103,4 @@ $this->BcBaser->js('BcAuthPasskey.bc_auth_passkey', false, ['defer' => true]);
         </div>
     </section>
 </div>
+<?= $this->fetch('postLink') ?>
