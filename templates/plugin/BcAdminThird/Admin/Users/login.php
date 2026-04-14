@@ -73,18 +73,8 @@ $this->BcBaser->js('BcPasskeyAuth.passkey-auth', false, ['defer' => true]);
           type="button"
           id="BtnPasskeyLogin"
           class="bca-btn bca-btn--passkey"
-          data-login-url="<?= $this->Url->build([
-            'plugin'     => 'BcPasskeyAuth',
-            'prefix'     => 'Admin',
-            'controller' => 'Passkeys',
-            'action'     => 'login',
-          ]) ?>"
-          data-challenge-url="<?= $this->Url->build([
-            'plugin'     => 'BcPasskeyAuth',
-            'prefix'     => 'Admin',
-            'controller' => 'Passkeys',
-            'action'     => 'login_challenge',
-          ]) ?>"
+          data-login-url="<?= $this->Url->build(['_name' => 'bc_passkey_auth_admin_login']) ?>"
+          data-challenge-url="<?= $this->Url->build(['_name' => 'bc_passkey_auth_admin_login_challenge']) ?>"
         >
           <?= __d('baser_core', 'パスキーでログイン') ?>
         </button>

@@ -10,6 +10,10 @@ $this->BcAdmin->setTitle(__d('baser_core', 'パスキー管理'));
     <?php $this->BcBaser->flash() ?>
 
     <div class="bca-section">
+        <p><?= __d('baser_core', '初回導入時は、下の「パスキーを登録する」からこの端末の生体認証デバイスを登録してください。') ?></p>
+    </div>
+
+    <div class="bca-section">
         <h2 class="bca-main__heading"><?= __d('baser_core', '登録済みパスキー') ?></h2>
 
         <?php if (empty($credentials)): ?>
@@ -67,18 +71,8 @@ $this->BcAdmin->setTitle(__d('baser_core', 'パスキー管理'));
                 ]) ?>
             </div>
             <button type="button" id="BtnPasskeyRegister" class="bca-btn"
-                data-challenge-url="<?= $this->Url->build([
-                    'plugin' => 'BcPasskeyAuth',
-                    'prefix' => 'Admin',
-                    'controller' => 'Passkeys',
-                    'action' => 'register_challenge',
-                ]) ?>"
-                data-register-url="<?= $this->Url->build([
-                    'plugin' => 'BcPasskeyAuth',
-                    'prefix' => 'Admin',
-                    'controller' => 'Passkeys',
-                    'action' => 'register',
-                ]) ?>">
+                data-challenge-url="<?= $this->Url->build(['_name' => 'bc_passkey_auth_admin_register_challenge']) ?>"
+                data-register-url="<?= $this->Url->build(['_name' => 'bc_passkey_auth_admin_register']) ?>">
                 <?= __d('baser_core', 'パスキーを登録する') ?>
             </button>
         </div>

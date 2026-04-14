@@ -23,10 +23,12 @@ class PasskeysController extends BcFrontAppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->Authentication->allowUnauthenticated([
-            'login_challenge',
-            'login',
-        ]);
+        if ($this->components()->has('Authentication')) {
+            $this->Authentication->allowUnauthenticated([
+                'loginChallenge',
+                'login',
+            ]);
+        }
     }
 
     public function beforeFilter(EventInterface $event): void
@@ -42,7 +44,7 @@ class PasskeysController extends BcFrontAppController
      *
      * GET /bc-passkey-auth/passkeys/login_challenge
      */
-    public function login_challenge(): Response
+    public function loginChallenge(): Response
     {
         $this->request->allowMethod('get');
 

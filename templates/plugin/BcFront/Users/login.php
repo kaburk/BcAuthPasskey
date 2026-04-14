@@ -84,7 +84,7 @@ $this->BcBaser->js('BcPasskeyAuth.passkey-auth', false, ['defer' => true]);
             'plugin'     => 'BcPasskeyAuth',
             'prefix'     => false,
             'controller' => 'Passkeys',
-            'action'     => 'login_challenge',
+            'action'     => 'loginChallenge',
           ]) ?>"
         >
           <?= __d('baser_core', 'パスキーでログイン') ?>
@@ -100,7 +100,7 @@ $this->BcBaser->js('BcPasskeyAuth.passkey-auth', false, ['defer' => true]);
         <div class="bs-login-divider">
           <span><?= __d('baser_core', 'または') ?></span>
         </div>
-        <?= $this->element('BcSocialAuth.social_login_buttons', ['prefix' => 'Front']) ?>
+        <?= $this->element('BcSocialAuth.social_login_buttons', ['prefix' => false]) ?>
       <?php
           endif;
       endif;
