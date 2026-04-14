@@ -11,6 +11,31 @@
 (function () {
     'use strict';
 
+    function getCsrfToken(rootElement) {
+        if (rootElement && rootElement.dataset && rootElement.dataset.csrfToken) {
+            return rootElement.dataset.csrfToken;
+        }
+        const meta = document.querySelector('meta[name="csrfToken"]');
+        if (meta && meta.content) {
+            return meta.content;
+        }
+        const input = document.querySelector('input[name="_csrfToken"]');
+        return input ? input.value : '';
+    }
+
+    function showMessage(element, type, message) {
+        if (!element) {
+            if (message && type === 'error') console.error(message);
+            return;
+        }
+        element.textContent = message || '';
+        element.classList.remove('is-info', 'is-error');
+        if (!message) {
+            return;
+        }
+        element.classList.add(type === 'error' ? 'is-error' : 'is-info');
+    }
+
     // --- ユーティリティ ---
 
     /**
@@ -81,9 +106,15 @@
     async function passkeyLogin(btn) {
         const challengeUrl = btn.dataset.challengeUrl;
         const loginUrl     = btn.dataset.loginUrl;
+        const csrfToken    = getCsrfToken(btn);
 
         const challengeRes = await fetch(challengeUrl, {
-            headers: { 'Accept': 'application/json' },
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(csrfToken ? {'X-CSRF-Token': csrfToken} : {}),
+            },
+            credentials: 'same-origin',
         });
         if (!challengeRes.ok) {
             console.error('challenge 取得に失敗しました');
@@ -117,7 +148,13 @@
 
         const loginRes = await fetch(loginUrl, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(csrfToken ? {'X-CSRF-Token': csrfToken} : {}),
+            },
+            credentials: 'same-origin',
             body:    JSON.stringify(assertionPayload),
         });
 
@@ -132,15 +169,23 @@
 
     // --- 登録 ---
 
-    async function passkeyRegister(name, registerChallengeUrl, registerUrl) {
-        const challengeUrl = registerChallengeUrl || '/baser/admin/bc-passkey-auth/passkeys/register_challenge';
-        const postUrl      = registerUrl           || '/baser/admin/bc-passkey-auth/passkeys/register';
+    async function passkeyRegister(name, registerChallengeUrl, registerUrl, csrfToken, messageElement) {
+        const challengeUrl = registerChallengeUrl || '/baser/admin/bc-auth-passkey/passkeys/register_challenge';
+        const postUrl      = registerUrl           || '/baser/admin/bc-auth-passkey/passkeys/register';
+
+        showMessage(messageElement, 'info', '');
 
         const challengeRes = await fetch(challengeUrl, {
-            headers: { 'Accept': 'application/json' },
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(csrfToken ? {'X-CSRF-Token': csrfToken} : {}),
+            },
+            credentials: 'same-origin',
         });
         if (!challengeRes.ok) {
-            console.error('challenge 取得に失敗しました');
+            const data = await challengeRes.json().catch(() => ({}));
+            showMessage(messageElement, 'error', data.message || '登録 challenge の取得に失敗しました。');
             return;
         }
         const { publicKey } = await challengeRes.json();
@@ -150,7 +195,10 @@
         try {
             attestation = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
         } catch (err) {
-            if (err.name !== 'NotAllowedError') console.error(err);
+            if (err.name !== 'NotAllowedError') {
+                console.error(err);
+                showMessage(messageElement, 'error', 'パスキー登録の開始に失敗しました。');
+            }
             return;
         }
 
@@ -170,14 +218,22 @@
 
         const registerRes = await fetch(postUrl, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(csrfToken ? {'X-CSRF-Token': csrfToken} : {}),
+            },
+            credentials: 'same-origin',
             body:    JSON.stringify(attestationPayload),
         });
 
         if (registerRes.ok) {
+            showMessage(messageElement, 'info', 'パスキーを登録しました。画面を更新します。');
             window.location.reload();
         } else {
             const data = await registerRes.json().catch(() => ({}));
+            showMessage(messageElement, 'error', data.message || '登録に失敗しました。');
             console.error('登録に失敗しました:', data.message || '');
         }
     }
@@ -197,10 +253,13 @@
         const registerBtn = document.getElementById('BtnPasskeyRegister');
         if (registerBtn) {
             registerBtn.addEventListener('click', function () {
+                const registerRoot = document.getElementById('PasskeyRegister');
                 const nameInput = document.getElementById('PasskeyName');
-                const challengeUrl = registerBtn.dataset.challengeUrl;
-                const registerUrl  = registerBtn.dataset.registerUrl;
-                passkeyRegister(nameInput ? nameInput.value : '', challengeUrl, registerUrl);
+                const messageElement = document.getElementById('PasskeyRegisterMessage');
+                const challengeUrl = registerRoot ? registerRoot.dataset.challengeUrl : registerBtn.dataset.challengeUrl;
+                const registerUrl  = registerRoot ? registerRoot.dataset.registerUrl : registerBtn.dataset.registerUrl;
+                const csrfToken = getCsrfToken(registerRoot || registerBtn);
+                passkeyRegister(nameInput ? nameInput.value : '', challengeUrl, registerUrl, csrfToken, messageElement);
             });
         }
     });

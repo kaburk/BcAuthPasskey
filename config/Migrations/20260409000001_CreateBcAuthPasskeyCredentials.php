@@ -7,14 +7,14 @@ use Phinx\Db\Adapter\MysqlAdapter;
 /**
  * passkey_credentials テーブルを作成するマイグレーション
  *
- * BcPasskeyAuth が管理する WebAuthn 資格情報テーブルです。
+ * BcAuthPasskey が管理する WebAuthn 資格情報テーブルです。
  * 1 ユーザーが複数のパスキーを登録できる 1 対多の構造をとります。
  */
-class CreatePasskeyCredentials extends BcMigration
+class CreateBcAuthPasskeyCredentials extends BcMigration
 {
     public function up(): void
     {
-        $this->table('passkey_credentials', [
+        $this->table('bc_auth_passkey_credentials', [
             'collation' => 'utf8mb4_general_ci',
         ])
             ->addColumn('user_id', 'integer', [
@@ -90,12 +90,12 @@ class CreatePasskeyCredentials extends BcMigration
 
         // credential_id は text 型のため prefix 付きで UNIQUE インデックスを追加する
         $this->execute(
-            'ALTER TABLE passkey_credentials ADD UNIQUE INDEX UNIQUE_credential_id (credential_id(191))'
+            'ALTER TABLE bc_auth_passkey_credentials ADD UNIQUE INDEX UNIQUE_credential_id (credential_id(191))'
         );
     }
 
     public function down(): void
     {
-        $this->table('passkey_credentials')->drop()->save();
+        $this->table('bc_auth_passkey_credentials')->drop()->save();
     }
 }

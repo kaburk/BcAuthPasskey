@@ -1,24 +1,25 @@
 <?php
 declare(strict_types=1);
 
-namespace BcPasskeyAuth\Controller;
+namespace BcAuthPasskey\Controller;
 
 use BaserCore\Controller\BcFrontAppController;
 use BcAuthCommon\Service\AuthLoginService;
-use BcPasskeyAuth\Service\PasskeyAuthService;
+use BcAuthCommon\Service\AuthLoginLogService;
+use BcAuthPasskey\Service\BcAuthPasskeyService;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
 
 /**
- * PasskeysController (Front)
+ * BcAuthPasskeysController (Front)
  *
  * フロントエンド向けパスキー認証エンドポイントを提供します。
  *
  * ルーティング（config/routes.php で設定）:
- *   GET  /bc-passkey-auth/passkeys/login_challenge
- *   POST /bc-passkey-auth/passkeys/login
+ *   GET  /bc-auth-passkey/passkeys/login_challenge
+ *   POST /bc-auth-passkey/passkeys/login
  */
-class PasskeysController extends BcFrontAppController
+class BcAuthPasskeysController extends BcFrontAppController
 {
     public function initialize(): void
     {
@@ -42,13 +43,13 @@ class PasskeysController extends BcFrontAppController
     /**
      * ログイン challenge の発行
      *
-     * GET /bc-passkey-auth/passkeys/login_challenge
+     * GET /bc-auth-passkey/passkeys/login_challenge
      */
     public function loginChallenge(): Response
     {
         $this->request->allowMethod('get');
 
-        $service  = new PasskeyAuthService();
+        $service  = new BcAuthPasskeyService();
         $redirect = $this->request->getQuery('redirect');
         $data     = $service->generateLoginChallenge('Front', $redirect);
 
@@ -60,7 +61,7 @@ class PasskeysController extends BcFrontAppController
     /**
      * パスキーでのログイン（assertion 検証）
      *
-     * POST /bc-passkey-auth/passkeys/login
+     * POST /bc-auth-passkey/passkeys/login
      *
      * 成功時は AuthLoginService 経由でセッション確立し redirect_url を JSON で返します。
      */
@@ -68,7 +69,7 @@ class PasskeysController extends BcFrontAppController
     {
         $this->request->allowMethod('post');
 
-        $service = new PasskeyAuthService();
+        $service = new BcAuthPasskeyService();
 
         try {
             $userId = $service->verifyLoginAssertion(
@@ -76,13 +77,14 @@ class PasskeysController extends BcFrontAppController
                 'Front'
             );
         } catch (\RuntimeException $e) {
+            AuthLoginLogService::write('login_failure', prefix: 'Front', authSource: 'passkey', request: $this->request, detail: $e->getMessage());
             return $this->response
                 ->withStatus(401)
                 ->withType('application/json')
                 ->withStringBody(json_encode(['message' => __d('baser_core', '認証に失敗しました。')]));
         }
 
-        $stored = $this->request->getSession()->read('BcPasskeyAuth.loginChallenge.Front') ?? [];
+        $stored = $this->request->getSession()->read('BcAuthPasskey.loginChallenge.Front') ?? [];
 
         $loginService = new AuthLoginService();
         try {

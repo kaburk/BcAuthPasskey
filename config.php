@@ -7,8 +7,8 @@ return [
     'url' => 'https://blog.kaburk.com/',
     'adminLink' => [
         'prefix' => 'Admin',
-        'plugin' => 'BcPasskeyAuth',
-        'controller' => 'Passkeys',
+        'plugin' => 'BcAuthPasskey',
+        'controller' => 'BcAuthPasskeys',
         'action' => 'index',
     ],
     'installMessage' => __d('baser_core', 'インストール完了後に開く「パスキー管理」画面から、すぐに生体認証デバイスを登録してください。'),

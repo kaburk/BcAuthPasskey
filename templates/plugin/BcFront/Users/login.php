@@ -1,18 +1,18 @@
 <?php
 /**
- * baserCMS Front ログイン画面（BcPasskeyAuth オーバーライド）
+ * baserCMS Front ログイン画面（BcAuthPasskey オーバーライド）
  *
  * bc-front の login.php にパスキーログインボタンと
- * ソーシャル認証ボタン（BcSocialAuth が有効な場合）を追加します。
+ * ソーシャル認証ボタン（BcAuthSocial が有効な場合）を追加します。
  *
  * @var \App\View\AppView $this
  * @var bool $savedEnable
  */
 
-use BcSocialAuth\Adapter\ProviderAdapterRegistry;
+use BcAuthCommon\Service\AuthEntryService;
 
 $this->BcBaser->setTitle(__d('baser_core', 'ログイン'));
-$this->BcBaser->js('BcPasskeyAuth.passkey-auth', false, ['defer' => true]);
+$this->BcBaser->js('BcAuthPasskey.bc_auth_passkey', false, ['defer' => true]);
 ?>
 
 <div id="Login" class="bs-login">
@@ -67,45 +67,19 @@ $this->BcBaser->js('BcPasskeyAuth.passkey-auth', false, ['defer' => true]);
     </div>
     <?= $this->BcAdminForm->end() ?>
 
+    <?php $entries = AuthEntryService::getInstance()->getOrderedEntries('Front'); ?>
+    <?php if (!empty($entries)): ?>
     <div class="bs-login-alt-methods">
-      <!-- パスキーログイン -->
-      <div class="bs-login-passkey">
-        <button
-          type="button"
-          id="BtnPasskeyLogin"
-          class="bs-btn bs-btn--passkey"
-          data-login-url="<?= $this->Url->build([
-            'plugin'     => 'BcPasskeyAuth',
-            'prefix'     => false,
-            'controller' => 'Passkeys',
-            'action'     => 'login',
-          ]) ?>"
-          data-challenge-url="<?= $this->Url->build([
-            'plugin'     => 'BcPasskeyAuth',
-            'prefix'     => false,
-            'controller' => 'Passkeys',
-            'action'     => 'loginChallenge',
-          ]) ?>"
-        >
-          <?= __d('baser_core', 'パスキーでログイン') ?>
-        </button>
-      </div>
-
-      <?php
-      // BcSocialAuth が有効でプロバイダが登録されている場合のみ表示
-      if (class_exists(ProviderAdapterRegistry::class)):
-          $registry = ProviderAdapterRegistry::getInstance();
-          if (!empty($registry->all())):
-      ?>
+      <?php foreach ($entries as $index => $entry): ?>
+        <?php if ($index > 0): ?>
         <div class="bs-login-divider">
           <span><?= __d('baser_core', 'または') ?></span>
         </div>
-        <?= $this->element('BcSocialAuth.social_login_buttons', ['prefix' => false]) ?>
-      <?php
-          endif;
-      endif;
-      ?>
+        <?php endif; ?>
+        <?= $this->element($entry['element'], ['prefix' => 'Front']) ?>
+      <?php endforeach; ?>
     </div>
+    <?php endif; ?>
 
   </div>
 </div>

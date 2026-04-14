@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace BcPasskeyAuth\Model\Entity;
+namespace BcAuthPasskey\Model\Entity;
 
 use Cake\ORM\Entity;
 
 /**
- * PasskeyCredential Entity
+ * BcAuthPasskeyCredential Entity
  *
  * @property int           $id
  * @property int           $user_id
@@ -22,7 +22,7 @@ use Cake\ORM\Entity;
  * @property \Cake\I18n\FrozenTime|null $created
  * @property \Cake\I18n\FrozenTime|null $modified
  */
-class PasskeyCredential extends Entity
+class BcAuthPasskeyCredential extends Entity
 {
     protected array $_accessible = [
         'user_id'       => true,

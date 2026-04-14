@@ -1,17 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace BcPasskeyAuth\Service;
+namespace BcAuthPasskey\Service;
 
-use BcPasskeyAuth\Model\Entity\PasskeyCredential;
+use BcAuthPasskey\Model\Entity\BcAuthPasskeyCredential;
 
 /**
- * PasskeyAuthServiceInterface
+ * BcAuthPasskeyServiceInterface
  *
  * WebAuthn / Passkey 認証サービスのインターフェースです。
- * PasskeyAuthService がこのインターフェースを実装します。
+ * BcAuthPasskeyService がこのインターフェースを実装します。
  */
-interface PasskeyAuthServiceInterface
+interface BcAuthPasskeyServiceInterface
 {
     /**
      * ログイン用 challenge を生成してセッションへ保存する
@@ -48,7 +48,7 @@ interface PasskeyAuthServiceInterface
      * @param int    $userId  登録ユーザー ID
      * @param string $prefix  利用プレフィックス
      * @param string|null $name ユーザーが付けるパスキー名称
-     * @return PasskeyCredential 保存した credential エンティティ
+     * @return BcAuthPasskeyCredential 保存した credential エンティティ
      * @throws \RuntimeException 検証失敗または重複登録時
      */
     public function verifyRegistrationAttestation(
@@ -56,14 +56,14 @@ interface PasskeyAuthServiceInterface
         int $userId,
         string $prefix,
         ?string $name = null
-    ): PasskeyCredential;
+    ): BcAuthPasskeyCredential;
 
     /**
      * 指定したユーザーのパスキー一覧を返す
      *
      * @param int    $userId
      * @param string $prefix
-     * @return PasskeyCredential[]
+     * @return BcAuthPasskeyCredential[]
      */
     public function getCredentials(int $userId, string $prefix = 'Admin'): array;
 

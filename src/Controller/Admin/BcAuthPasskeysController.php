@@ -1,16 +1,17 @@
 <?php
 declare(strict_types=1);
 
-namespace BcPasskeyAuth\Controller\Admin;
+namespace BcAuthPasskey\Controller\Admin;
 
 use BaserCore\Controller\Admin\BcAdminAppController;
 use BcAuthCommon\Service\AuthLoginService;
-use BcPasskeyAuth\Service\PasskeyAuthService;
+use BcAuthCommon\Service\AuthLoginLogService;
+use BcAuthPasskey\Service\BcAuthPasskeyService;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
 
 /**
- * PasskeysController (Admin)
+ * BcAuthPasskeysController (Admin)
  *
  * Admin プレフィックスにおけるパスキーの管理・認証エンドポイントを提供します。
  *
@@ -18,14 +19,14 @@ use Cake\Http\Response;
  * register / delete は認証済みセッションが必要です。
  *
  * ルーティング（config/routes.php で設定）:
- *   GET  /baser/admin/bc-passkey-auth/passkeys/login_challenge
- *   POST /baser/admin/bc-passkey-auth/passkeys/login
- *   GET  /baser/admin/bc-passkey-auth/passkeys/register_challenge
- *   POST /baser/admin/bc-passkey-auth/passkeys/register
- *   GET  /baser/admin/bc-passkey-auth/passkeys/index
- *   POST /baser/admin/bc-passkey-auth/passkeys/delete/{id}
+ *   GET  /baser/admin/bc-auth-passkey/passkeys/login_challenge
+ *   POST /baser/admin/bc-auth-passkey/passkeys/login
+ *   GET  /baser/admin/bc-auth-passkey/passkeys/register_challenge
+ *   POST /baser/admin/bc-auth-passkey/passkeys/register
+ *   GET  /baser/admin/bc-auth-passkey/passkeys/index
+ *   POST /baser/admin/bc-auth-passkey/passkeys/delete/{id}
  */
-class PasskeysController extends BcAdminAppController
+class BcAuthPasskeysController extends BcAdminAppController
 {
     public function initialize(): void
     {
@@ -55,13 +56,13 @@ class PasskeysController extends BcAdminAppController
     /**
      * ログイン challenge の発行
      *
-     * GET /baser/admin/bc-passkey-auth/passkeys/login_challenge
+     * GET /baser/admin/bc-auth-passkey/passkeys/login_challenge
      */
     public function loginChallenge(): Response
     {
         $this->request->allowMethod('get');
 
-        $service  = new PasskeyAuthService();
+        $service  = new BcAuthPasskeyService();
         $redirect = $this->request->getQuery('redirect');
         $data     = $service->generateLoginChallenge('Admin', $redirect);
 
@@ -73,7 +74,7 @@ class PasskeysController extends BcAdminAppController
     /**
      * パスキーでのログイン（assertion 検証）
      *
-    * POST /baser/admin/bc-passkey-auth/passkeys/login
+    * POST /baser/admin/bc-auth-passkey/passkeys/login
     *
     * 成功時は AuthLoginService 経由でセッション確立またはログインコード画面へリダイレクトします。
      */
@@ -81,7 +82,7 @@ class PasskeysController extends BcAdminAppController
     {
         $this->request->allowMethod('post');
 
-        $service = new PasskeyAuthService();
+        $service = new BcAuthPasskeyService();
 
         try {
             $userId = $service->verifyLoginAssertion(
@@ -89,13 +90,14 @@ class PasskeysController extends BcAdminAppController
                 'Admin'
             );
         } catch (\RuntimeException $e) {
+            AuthLoginLogService::write('login_failure', prefix: 'Admin', authSource: 'passkey', request: $this->request, detail: $e->getMessage());
             return $this->response
                 ->withStatus(401)
                 ->withType('application/json')
                 ->withStringBody(json_encode(['message' => __d('baser_core', '認証に失敗しました。')]));
         }
 
-        $stored = $this->request->getSession()->read('BcPasskeyAuth.loginChallenge.Admin') ?? [];
+        $stored = $this->request->getSession()->read('BcAuthPasskey.loginChallenge.Admin') ?? [];
 
         $loginService = new AuthLoginService();
         try {
@@ -124,7 +126,7 @@ class PasskeysController extends BcAdminAppController
     /**
      * 登録 challenge の発行
      *
-     * GET /baser/admin/bc-passkey-auth/passkeys/register_challenge
+     * GET /baser/admin/bc-auth-passkey/passkeys/register_challenge
      * 認証済みセッションが必要です。
      */
     public function registerChallenge(): Response
@@ -132,7 +134,7 @@ class PasskeysController extends BcAdminAppController
         $this->request->allowMethod('get');
 
         $user    = $this->Authentication->getIdentity();
-        $service = new PasskeyAuthService();
+        $service = new BcAuthPasskeyService();
         $data    = $service->generateRegisterChallenge($user->id, 'Admin');
 
         return $this->response
@@ -143,7 +145,7 @@ class PasskeysController extends BcAdminAppController
     /**
      * パスキーの登録（attestation 検証）
      *
-     * POST /baser/admin/bc-passkey-auth/passkeys/register
+     * POST /baser/admin/bc-auth-passkey/passkeys/register
      * 認証済みセッションが必要です。
      */
     public function register(): Response
@@ -151,7 +153,7 @@ class PasskeysController extends BcAdminAppController
         $this->request->allowMethod('post');
 
         $user    = $this->Authentication->getIdentity();
-        $service = new PasskeyAuthService();
+        $service = new BcAuthPasskeyService();
 
         try {
             $credential = $service->verifyRegistrationAttestation(
@@ -178,13 +180,13 @@ class PasskeysController extends BcAdminAppController
     /**
      * 登録済みパスキー一覧
      *
-     * GET /baser/admin/bc-passkey-auth/passkeys/index
+     * GET /baser/admin/bc-auth-passkey/passkeys/index
      * 認証済みセッションが必要です。
      */
     public function index(): void
     {
         $user        = $this->Authentication->getIdentity();
-        $service     = new PasskeyAuthService();
+        $service     = new BcAuthPasskeyService();
         $credentials = $service->getCredentials($user->id, 'Admin');
 
         $this->set(compact('credentials'));
@@ -193,7 +195,7 @@ class PasskeysController extends BcAdminAppController
     /**
      * パスキーの削除
      *
-     * POST /baser/admin/bc-passkey-auth/passkeys/delete/{id}
+     * POST /baser/admin/bc-auth-passkey/passkeys/delete/{id}
      * 認証済みセッションが必要です。
      */
     public function delete(int $id): Response
@@ -201,7 +203,7 @@ class PasskeysController extends BcAdminAppController
         $this->request->allowMethod('post');
 
         $user    = $this->Authentication->getIdentity();
-        $service = new PasskeyAuthService();
+        $service = new BcAuthPasskeyService();
 
         if (!$service->deleteCredential($id, $user->id)) {
             $this->BcMessage->setError(__d('baser_core', '削除に失敗しました。'));

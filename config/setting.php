@@ -7,12 +7,12 @@ return [
         'adminNavigation' => [
             'Plugins' => [
                 'menus' => [
-                    'BcPasskeyAuthManage' => [
+                    'BcAuthPasskeyManage' => [
                         'title' => __d('baser_core', 'パスキー管理'),
                         'url' => [
                             'prefix' => 'Admin',
-                            'plugin' => 'BcPasskeyAuth',
-                            'controller' => 'Passkeys',
+                            'plugin' => 'BcAuthPasskey',
+                            'controller' => 'BcAuthPasskeys',
                             'action' => 'index',
                         ],
                     ],

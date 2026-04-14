@@ -1,0 +1,66 @@
+.bca-passkey-index__help {
+  margin: 8px 0 0;
+  color: #667261;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.bca-passkey-index__textbox {
+  display: block;
+}
+
+.bca-passkey-index__name-input {
+  width: min(100%, 560px);
+  margin: 0;
+}
+
+.bca-passkey-index__empty {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid #dbe4d6;
+  background: #f8fbf6;
+  color: #53614f;
+}
+
+.bca-passkey-index__actions {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.bca-passkey-index__actions .bca-actions__item,
+.bca-passkey-index__actions .bca-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  text-align: center;
+}
+
+.bca-passkey-index__message {
+  display: none;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bca-passkey-index__message.is-info {
+  display: block;
+  background: #eef7e7;
+  border: 1px solid #cde0bf;
+  color: #355524;
+}
+
+.bca-passkey-index__message.is-error {
+  display: block;
+  background: #fff3f3;
+  border: 1px solid #e6c2c2;
+  color: #8b3a3a;
+}
+
+@media screen and (max-width: 768px) {
+  .bca-passkey-index__name-input {
+    width: 100%;
+  }
+}

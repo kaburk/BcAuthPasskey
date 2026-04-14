@@ -1,24 +1,24 @@
 <?php
 declare(strict_types=1);
 
-namespace BcPasskeyAuth\Model\Table;
+namespace BcAuthPasskey\Model\Table;
 
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 /**
- * PasskeyCredentialsTable
+ * BcAuthPasskeyCredentialsTable
  *
  * WebAuthn / Passkey の資格情報を管理するテーブルクラスです。
  * 1 ユーザーが複数の credential を登録できます。
  */
-class PasskeyCredentialsTable extends Table
+class BcAuthPasskeyCredentialsTable extends Table
 {
     public function initialize(array $config): void
     {
         parent::initialize($config);
 
-        $this->setTable('passkey_credentials');
+        $this->setTable('bc_auth_passkey_credentials');
         $this->setPrimaryKey('id');
         $this->setDisplayField('name');
 
@@ -86,7 +86,7 @@ class PasskeyCredentialsTable extends Table
      * credential_id からレコードを取得する
      *
      * @param string $credentialId Base64URL エンコード済み credential ID
-     * @return \BcPasskeyAuth\Model\Entity\PasskeyCredential|null
+     * @return \BcAuthPasskey\Model\Entity\BcAuthPasskeyCredential|null
      */
     public function findByCredentialId(string $credentialId): ?object
     {

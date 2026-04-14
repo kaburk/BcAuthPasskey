@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace BcPasskeyAuth\Service;
+namespace BcAuthPasskey\Service;
 
-use BcPasskeyAuth\Model\Entity\PasskeyCredential;
-use BcPasskeyAuth\Model\Table\PasskeyCredentialsTable;
+use BcAuthPasskey\Model\Entity\BcAuthPasskeyCredential;
+use BcAuthPasskey\Model\Table\BcAuthPasskeyCredentialsTable;
 use Cake\Core\Configure;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
@@ -31,13 +31,13 @@ use Webauthn\PublicKeyCredentialSource;
 use Webauthn\PublicKeyCredentialUserEntity;
 use Webauthn\TrustPath\EmptyTrustPath;
 
-class PasskeyAuthService implements PasskeyAuthServiceInterface
+class BcAuthPasskeyService implements BcAuthPasskeyServiceInterface
 {
-    private PasskeyCredentialsTable $credentials;
+    private BcAuthPasskeyCredentialsTable $credentials;
 
     public function __construct()
     {
-        $this->credentials = TableRegistry::getTableLocator()->get('BcPasskeyAuth.PasskeyCredentials');
+        $this->credentials = TableRegistry::getTableLocator()->get('BcAuthPasskey.BcAuthPasskeyCredentials');
     }
 
     public function generateLoginChallenge(string $prefix, ?string $redirect = null): array
@@ -50,7 +50,7 @@ class PasskeyAuthService implements PasskeyAuthServiceInterface
             60000
         );
 
-        Router::getRequest()->getSession()->write('BcPasskeyAuth.loginChallenge.' . $prefix, [
+        Router::getRequest()->getSession()->write('BcAuthPasskey.loginChallenge.' . $prefix, [
             'options' => $this->serialize($options),
             'redirect' => $redirect,
             'generated_at' => time(),
@@ -62,8 +62,8 @@ class PasskeyAuthService implements PasskeyAuthServiceInterface
     public function verifyLoginAssertion(array $assertionResponse, string $prefix): int
     {
         $session = Router::getRequest()->getSession();
-        $stored = $session->read('BcPasskeyAuth.loginChallenge.' . $prefix);
-        $session->delete('BcPasskeyAuth.loginChallenge.' . $prefix);
+        $stored = $session->read('BcAuthPasskey.loginChallenge.' . $prefix);
+        $session->delete('BcAuthPasskey.loginChallenge.' . $prefix);
 
         if (empty($stored['options'])) {
             throw new RuntimeException('challenge が見つかりません。');
@@ -132,7 +132,7 @@ class PasskeyAuthService implements PasskeyAuthServiceInterface
                 residentKey: AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_REQUIRED
             ),
             PublicKeyCredentialCreationOptions::ATTESTATION_CONVEYANCE_PREFERENCE_NONE,
-            array_map(function (PasskeyCredential $credential) {
+            array_map(function (BcAuthPasskeyCredential $credential) {
                 return PublicKeyCredentialDescriptor::create(
                     PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
                     $this->decodeBase64Url($credential->credential_id),
@@ -142,7 +142,7 @@ class PasskeyAuthService implements PasskeyAuthServiceInterface
             60000
         );
 
-        Router::getRequest()->getSession()->write('BcPasskeyAuth.registerChallenge.' . $prefix, [
+        Router::getRequest()->getSession()->write('BcAuthPasskey.registerChallenge.' . $prefix, [
             'options' => $this->serialize($options),
             'user_id' => $userId,
             'user_handle' => Base64UrlSafe::encodeUnpadded($userHandle),
@@ -157,10 +157,10 @@ class PasskeyAuthService implements PasskeyAuthServiceInterface
         int $userId,
         string $prefix,
         ?string $name = null
-    ): PasskeyCredential {
+    ): BcAuthPasskeyCredential {
         $session = Router::getRequest()->getSession();
-        $stored = $session->read('BcPasskeyAuth.registerChallenge.' . $prefix);
-        $session->delete('BcPasskeyAuth.registerChallenge.' . $prefix);
+        $stored = $session->read('BcAuthPasskey.registerChallenge.' . $prefix);
+        $session->delete('BcAuthPasskey.registerChallenge.' . $prefix);
 
         if (empty($stored['options']) || (int)$stored['user_id'] !== $userId) {
             throw new RuntimeException('登録チャレンジが無効または期限切れです。');
@@ -252,7 +252,7 @@ class PasskeyAuthService implements PasskeyAuthServiceInterface
         return $factory;
     }
 
-    private function toCredentialSource(PasskeyCredential $credential): PublicKeyCredentialSource
+    private function toCredentialSource(BcAuthPasskeyCredential $credential): PublicKeyCredentialSource
     {
         return PublicKeyCredentialSource::create(
             $this->decodeBase64Url($credential->credential_id),
@@ -274,12 +274,12 @@ class PasskeyAuthService implements PasskeyAuthServiceInterface
 
     private function getRpId(): string
     {
-        return (string)(Configure::read('BcPasskeyAuth.rpId') ?: Router::getRequest()->getUri()->getHost());
+        return (string)(Configure::read('BcAuthPasskey.rpId') ?: Router::getRequest()->getUri()->getHost());
     }
 
     private function getRpName(): string
     {
-        return (string)(Configure::read('BcPasskeyAuth.rpName') ?: Router::getRequest()->getUri()->getHost());
+        return (string)(Configure::read('BcAuthPasskey.rpName') ?: Router::getRequest()->getUri()->getHost());
     }
 
     private function getHost(): string
