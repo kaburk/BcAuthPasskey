@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace BcAuthPasskey\Controller\Admin;
 
 use BaserCore\Controller\Admin\BcAdminAppController;
+use BaserCore\Service\UsersService;
 use BcAuthCommon\Service\AuthLoginService;
 use BcAuthCommon\Service\AuthLoginLogService;
 use BcAuthPasskey\Service\BcAuthPasskeyService;
@@ -118,6 +119,10 @@ class BcAuthPasskeysController extends BcAdminAppController
         $this->request  = $loginResult->request;
         $this->response = $loginResult->response;
 
+        if ($loginResult->status === 'completed') {
+            $this->setLoginSuccessMessage($userId);
+        }
+
         return $this->response
             ->withType('application/json')
             ->withStringBody(json_encode(['redirect_url' => $loginResult->redirect_url]));
@@ -175,6 +180,13 @@ class BcAuthPasskeysController extends BcAdminAppController
                 'id'   => $credential->id,
                 'name' => $credential->name,
             ]));
+    }
+
+    private function setLoginSuccessMessage(int $userId): void
+    {
+        /** @var \BaserCore\Model\Entity\User $user */
+        $user = (new UsersService())->get($userId);
+        $this->BcMessage->setInfo(__d('baser_core', 'ようこそ、{0}さん。', $user->getDisplayName()));
     }
 
     /**
