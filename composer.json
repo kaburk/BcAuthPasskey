@@ -1,0 +1,26 @@
+{
+    "name": "baserproject/bc-auth-passkey",
+    "description": "Passkey / WebAuthn authentication plugin for baserCMS",
+    "homepage": "https://basercms.net",
+    "type": "cakephp-plugin",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.1",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "phpdocumentor/reflection-docblock": "^5.6",
+        "symfony/property-access": "^6.4",
+        "symfony/property-info": "^6.4",
+        "symfony/serializer": "^6.4",
+        "web-auth/webauthn-lib": "^4.8.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "BcAuthPasskey\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
