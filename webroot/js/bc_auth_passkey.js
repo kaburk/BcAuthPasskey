@@ -11,6 +11,34 @@
 (function () {
     'use strict';
 
+    function setPasskeyLoginPending(btn, pending) {
+        if (!btn) {
+            return;
+        }
+
+        const body = document.body;
+        const title = btn.querySelector('.bca-login-alt-methods__title');
+
+        if (!btn.dataset.originalDisabledText) {
+            btn.dataset.originalDisabledText = title ? title.textContent : btn.textContent;
+        }
+
+        btn.disabled = pending;
+        btn.setAttribute('aria-busy', pending ? 'true' : 'false');
+        btn.dataset.loading = pending ? 'true' : 'false';
+        btn.style.cursor = pending ? 'progress' : '';
+        if (body) {
+            body.style.cursor = pending ? 'progress' : '';
+        }
+
+        if (title) {
+            title.textContent = pending ? '認証中...' : btn.dataset.originalDisabledText;
+            return;
+        }
+
+        btn.textContent = pending ? '認証中...' : btn.dataset.originalDisabledText;
+    }
+
     function getCsrfToken(rootElement) {
         if (rootElement && rootElement.dataset && rootElement.dataset.csrfToken) {
             return rootElement.dataset.csrfToken;
@@ -104,9 +132,21 @@
     }
 
     async function passkeyLogin(btn) {
+        if (btn.disabled) {
+            return;
+        }
+
         const challengeUrl = btn.dataset.challengeUrl;
         const loginUrl     = btn.dataset.loginUrl;
         const csrfToken    = getCsrfToken(btn);
+
+        setPasskeyLoginPending(btn, true);
+
+        if (!navigator.credentials || !navigator.credentials.get) {
+            console.error('このブラウザはパスキーログインに対応していません');
+            setPasskeyLoginPending(btn, false);
+            return;
+        }
 
         const challengeRes = await fetch(challengeUrl, {
             headers: {
@@ -118,6 +158,7 @@
         });
         if (!challengeRes.ok) {
             console.error('challenge 取得に失敗しました');
+            setPasskeyLoginPending(btn, false);
             return;
         }
         const { publicKey } = await challengeRes.json();
@@ -129,6 +170,7 @@
         } catch (err) {
             // ユーザーキャンセルは正常系
             if (err.name !== 'NotAllowedError') console.error(err);
+            setPasskeyLoginPending(btn, false);
             return;
         }
 
@@ -164,6 +206,7 @@
         } else {
             const data = await loginRes.json().catch(() => ({}));
             console.error('ログインに失敗しました:', data.message || '');
+            setPasskeyLoginPending(btn, false);
         }
     }
 

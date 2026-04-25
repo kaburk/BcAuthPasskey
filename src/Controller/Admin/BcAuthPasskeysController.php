@@ -91,7 +91,17 @@ class BcAuthPasskeysController extends BcAdminAppController
                 'Admin'
             );
         } catch (\RuntimeException $e) {
-            AuthLoginLogService::write('login_failure', prefix: 'Admin', authSource: 'passkey', request: $this->request, detail: $e->getMessage());
+            AuthLoginLogService::writeWithContext(
+                event: 'login_failure',
+                prefix: 'Admin',
+                authSource: 'passkey',
+                request: $this->request,
+                context: [
+                    'request_path' => (string) $this->request->getRequestTarget(),
+                    'referer' => (string) $this->request->getHeaderLine('Referer'),
+                    'payload' => ['error' => $e->getMessage()],
+                ]
+            );
             return $this->response
                 ->withStatus(401)
                 ->withType('application/json')
@@ -110,6 +120,24 @@ class BcAuthPasskeysController extends BcAdminAppController
                 'saved'       => false,
             ], $this->request, $this->response);
         } catch (\RuntimeException $e) {
+            if ($e->getCode() === 403) {
+                return $this->response
+                    ->withStatus(403)
+                    ->withType('application/json')
+                    ->withStringBody(json_encode(['message' => $e->getMessage()]));
+            }
+            AuthLoginLogService::writeWithContext(
+                event: 'login_failure',
+                userId: $userId,
+                prefix: 'Admin',
+                authSource: 'passkey',
+                request: $this->request,
+                context: [
+                    'request_path' => (string) $this->request->getRequestTarget(),
+                    'referer' => (string) $this->request->getHeaderLine('Referer'),
+                    'payload' => ['error' => $e->getMessage()],
+                ]
+            );
             return $this->response
                 ->withStatus(500)
                 ->withType('application/json')
