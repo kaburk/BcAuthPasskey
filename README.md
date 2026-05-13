@@ -56,6 +56,13 @@ Docker 環境で実行する場合（baserCMS 開発環境の例）:
 - ログイン完了処理と監査ログ共通化は BcAuthCommon 側に寄せる
 - 認証履歴の auth_source は passkey を利用する
 
+## 関連プラグイン
+
+- [../BcAuthCommon/README.md](../BcAuthCommon/README.md)
+- [../BcAuthPasskey/README.md](../BcAuthPasskey/README.md)
+- [../BcAuthSocial/README.md](../BcAuthSocial/README.md)
+- [../BcAuthGuard/README.md](../BcAuthGuard/README.md)
+
 ## ライセンス
 
 MIT License.
