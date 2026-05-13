@@ -9,6 +9,7 @@ use BcAuthPasskey\Event\BcAuthPasskeyViewEventListener;
 use Cake\Core\PluginApplicationInterface;
 use Cake\Event\EventManager;
 use Cake\Log\Log;
+use RuntimeException;
 
 /**
  * plugin for BcAuthPasskey
@@ -49,18 +50,21 @@ class BcAuthPasskeyPlugin extends BcPlugin
 		$vendorAutoload = $pluginDir . '/vendor/autoload.php';
 
 		if (!file_exists($vendorAutoload)) {
-			$composerBin = $this->resolveComposerBin();
-			$command = escapeshellarg($composerBin)
-				. ' install --no-interaction --no-dev --quiet'
-				. ' --working-dir=' . escapeshellarg($pluginDir)
-				. ' 2>&1';
+			$command = $this->buildComposerInstallCommand($pluginDir);
+			if (!$command) {
+				Log::error('BcAuthPasskey: composer executable was not found.');
+				throw new RuntimeException('BcAuthPasskey: composer executable was not found. Install Composer or place composer/composer.phar.');
+			}
 
 			Log::info('BcAuthPasskey: Running composer install...');
+			$output = [];
+			$exitCode = 1;
 			exec($command, $output, $exitCode);
 
 			if ($exitCode !== 0) {
-				Log::error('BcAuthPasskey: composer install failed: ' . implode("\n", $output));
-				// 失敗してもインストール自体は続行する（手動対応可能）
+				$errorSummary = implode("\n", array_slice($output, 0, 15));
+				Log::error('BcAuthPasskey: composer install failed: ' . $errorSummary);
+				throw new RuntimeException("BcAuthPasskey: composer install failed.\n" . $errorSummary);
 			} else {
 				Log::info('BcAuthPasskey: composer install completed.');
 			}
@@ -70,15 +74,45 @@ class BcAuthPasskeyPlugin extends BcPlugin
 	}
 
 	/**
+	 * composer install コマンドを組み立てる
+	 */
+	private function buildComposerInstallCommand(string $pluginDir): ?string
+	{
+		$composerPhar = ROOT . DS . 'composer' . DS . 'composer.phar';
+		$composerHome = ROOT . DS . 'composer';
+		$envPrefix = 'HOME=' . escapeshellarg($composerHome)
+			. ' COMPOSER_HOME=' . escapeshellarg($composerHome)
+			. ' ';
+		$phpBin = $this->resolvePhpBin();
+		if (file_exists($composerPhar) && $phpBin) {
+			return $envPrefix
+				. escapeshellarg($phpBin)
+				. ' ' . escapeshellarg($composerPhar)
+				. ' install --no-interaction --no-dev --quiet --ignore-platform-req=php --ignore-platform-req=ext-xdebug'
+				. ' --working-dir=' . escapeshellarg($pluginDir)
+				. ' 2>&1';
+		}
+
+		$composerBin = $this->resolveComposerBin();
+		if (!$composerBin) {
+			return null;
+		}
+
+		return $envPrefix
+			. escapeshellarg($composerBin)
+			. ' install --no-interaction --no-dev --quiet --ignore-platform-req=php --ignore-platform-req=ext-xdebug'
+			. ' --working-dir=' . escapeshellarg($pluginDir)
+			. ' 2>&1';
+	}
+
+	/**
 	 * composer 実行ファイルのパスを解決する
 	 */
-	private function resolveComposerBin(): string
+	private function resolveComposerBin(): ?string
 	{
-		// プロジェクト root に composer.phar があればそちらを優先
-		$projectRoot = dirname(__DIR__, 2);
 		foreach ([
-			$projectRoot . '/composer.phar',
 			'/usr/local/bin/composer',
+			'/opt/homebrew/bin/composer',
 			'/usr/bin/composer',
 		] as $path) {
 			if (file_exists($path) && is_executable($path)) {
@@ -86,7 +120,32 @@ class BcAuthPasskeyPlugin extends BcPlugin
 			}
 		}
 
-		// PATH に composer があることを期待
-		return 'composer';
+		if (is_executable('/bin/sh')) {
+			$path = trim((string) shell_exec('/bin/sh -lc "command -v composer"'));
+			if ($path) {
+				return $path;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * php 実行ファイルのパスを解決する
+	 */
+	private function resolvePhpBin(): ?string
+	{
+		foreach ([
+			PHP_BINARY,
+			'/usr/local/bin/php',
+			'/opt/homebrew/bin/php',
+			'/usr/bin/php',
+		] as $path) {
+			if ($path && file_exists($path) && is_executable($path)) {
+				return $path;
+			}
+		}
+
+		return null;
 	}
 }
