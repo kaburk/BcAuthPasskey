@@ -11,5 +11,5 @@ return [
         'controller' => 'BcAuthPasskeys',
         'action' => 'index',
     ],
-    'installMessage' => __d('baser_core', 'インストール完了後に開く「パスキー管理」画面から、すぐに生体認証デバイスを登録してください。'),
+    'installMessage' => __d('baser_core', 'インストール完了後に「パスキー管理」画面から、生体認証デバイスを登録してください。'),
 ];
