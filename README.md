@@ -42,20 +42,6 @@ Docker 環境で実行する場合（baserCMS 開発環境の例）:
 - 詳細設計: [docs/passkey-auth-design.md](docs/passkey-auth-design.md)
 - 認証プラグイン全体整理: [../BcAuthCommon/docs/auth-plugin-spec-summary.md](../BcAuthCommon/docs/auth-plugin-spec-summary.md)
 
-## よく参照する実装ファイル（入口）
-
-- [src/Controller/Admin/BcAuthPasskeysController.php](src/Controller/Admin/BcAuthPasskeysController.php)
-- [src/Controller/BcAuthPasskeysController.php](src/Controller/BcAuthPasskeysController.php)
-- [src/Service/BcAuthPasskeyService.php](src/Service/BcAuthPasskeyService.php)
-- [src/Model/Table/BcAuthPasskeyCredentialsTable.php](src/Model/Table/BcAuthPasskeyCredentialsTable.php)
-- [config/Migrations](config/Migrations)
-
-## 開発メモ
-
-- 認証方式固有の検証は BcAuthPasskey 側に実装する
-- ログイン完了処理と監査ログ共通化は BcAuthCommon 側に寄せる
-- 認証履歴の auth_source は passkey を利用する
-
 ## 関連プラグイン
 
 - [../BcAuthCommon/README.md](../BcAuthCommon/README.md)
