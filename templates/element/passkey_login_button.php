@@ -8,6 +8,7 @@
  * @var string $prefix 'Admin' | 'Front'
  */
 $prefix = $prefix ?? 'Admin';
+$this->BcBaser->js('BcAuthPasskey.bc_auth_passkey', false, ['defer' => true]);
 $loginUrl = $prefix === 'Admin'
   ? $this->Url->build(['plugin' => 'BcAuthPasskey', 'prefix' => 'Admin', 'controller' => 'BcAuthPasskeys', 'action' => 'login'])
   : $this->Url->build(['plugin' => 'BcAuthPasskey', 'prefix' => false, 'controller' => 'BcAuthPasskeys', 'action' => 'login']);

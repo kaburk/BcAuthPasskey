@@ -5,9 +5,7 @@ namespace BcAuthPasskey;
 
 use BaserCore\BcPlugin;
 use BcAuthCommon\Service\AuthEntryService;
-use BcAuthPasskey\Event\BcAuthPasskeyViewEventListener;
 use Cake\Core\PluginApplicationInterface;
-use Cake\Event\EventManager;
 use Cake\Log\Log;
 use RuntimeException;
 
@@ -30,8 +28,8 @@ class BcAuthPasskeyPlugin extends BcPlugin
 			return;
 		}
 
-		EventManager::instance()->on(new BcAuthPasskeyViewEventListener());
-
+		// ログイン画面への描画は BcAuthCommon がテンプレートを差し替えて行うため、
+		// ここでは認証入口（ログインボタン）の登録のみを行う
 		AuthEntryService::getInstance()->register([
 			'id'       => 'passkey',
 			'label'    => 'パスキーでログイン',
