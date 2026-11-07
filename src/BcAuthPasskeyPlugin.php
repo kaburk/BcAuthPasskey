@@ -130,16 +130,24 @@ class BcAuthPasskeyPlugin extends BcPlugin
 
 	/**
 	 * php 実行ファイルのパスを解決する
+	 *
+	 * .env の PHP（例: export PHP="/usr/bin/php85"）を優先する。
+	 * Web 経由では PHP_BINARY が php-cgi になる環境があり、
+	 * max_execution_time が効いてタイムアウトするため CGI 版は除外する。
 	 */
 	private function resolvePhpBin(): ?string
 	{
 		foreach ([
+			(string) env('PHP', ''),
 			PHP_BINARY,
 			'/usr/local/bin/php',
 			'/opt/homebrew/bin/php',
 			'/usr/bin/php',
 		] as $path) {
-			if ($path && file_exists($path) && is_executable($path)) {
+			if (!$path || str_contains(basename($path), 'cgi')) {
+				continue;
+			}
+			if (file_exists($path) && is_executable($path)) {
 				return $path;
 			}
 		}
